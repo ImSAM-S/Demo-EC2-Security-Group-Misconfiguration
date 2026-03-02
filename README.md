@@ -1,49 +1,57 @@
 # Demo-EC2-Security-Group-Misconfiguration
 
+## Introduction
+This project highlights the risks of EC2 Security Group misconfiguration. By exposing SSH to the entire Internet and enabling password authentication with weak credentials, i want demonstrate how attackers can exploit these mistakes using brute force tools like Hydra. The goal is to raise awareness of cloud security best practices and show how small misconfigurations can lead to serious vulnerabilities.
 
 ## Tạo EC2
 
 Vào AWS Management Console → chọn EC2.
 Nhấn Launch Instance.
-Đặt tên instance (ví dụ: Demo-SG-Misconfig).
-Chọn Amazon Linux 2 AMI (Free tier eligible).
-Chọn loại máy: t2.micro (Free tier).
-Key pair: tạo mới hoặc dùng key pair có sẵn để SSH.
-Network settings: tạo Security Group mới.
 
+![image alt](https://github.com/ImSAM-S/Demo-EC2-Security-Group-Misconfiguration/blob/4801b6ebc7ebf514610f694ccb6ac0155b75969d/01_Starting_launch_instance.png)
 
-### Cách chỉnh Security Group sai cấu hình (demo misconfig)
-Trong phần Firewall (security groups), chọn Create security group.
+Name the instance
+Select Amazon Linux 2 AMI (Free tier eligible).
+Select machine type: t2.micro (Free tier).
+Key pair: create a new one or use an existing key pair for SSH.
 
-Ở mục Inbound rules, thêm rule:
+Network settings: create a new Security Group:
+-> How to correct a misconfigured Security Group (demo misconfig). In the Firewall (security groups) section, select Create security group. In the Inbound rules section, add the follow
 . Type: All traffic
 . Protocol: All
 . Port range: All
 . Source type: Anywhere
 . Source: 0.0.0.0/0
 
-Lưu lại.
-👉 Đây là cấu hình cực kỳ nguy hiểm vì mở toàn bộ cổng cho tất cả mọi người trên Internet.
+![image alt](https://github.com/ImSAM-S/Demo-EC2-Security-Group-Misconfiguration/blob/4801b6ebc7ebf514610f694ccb6ac0155b75969d/02_Settings.png)
 
-*) Phân tích rủi ro
-. Port scanning: Hacker có thể quét toàn bộ cổng để tìm dịch vụ đang chạy
-. Brute force SSH: Nếu SSH mở ra toàn Internet, kẻ tấn công có thể thử mật khẩu liên tục
-. Exploit services: Nếu bạn chạy web server hoặc database, chúng có thể bị khai thác lỗ hổng
+Saved.
 
-👉 Sau đây tôi sẽ mô phỏng 1 tình huống:
+![image alt](https://github.com/ImSAM-S/Demo-EC2-Security-Group-Misconfiguration/blob/4801b6ebc7ebf514610f694ccb6ac0155b75969d/03_Instance_done.png)
 
-## Tạo môi trường thuận lợi thực hành:
-🔹 Bước 1: SSH vào bằng key pair
-Trên máy local:
+👉 This is an extremely dangerous configuration because it opens all the ports to everyone on the Internet.
+
+*) Risk Analysis
+. Port scanning: Hackers can scan all ports to find running services
+. Brute force SSH: If SSH is open to the entire internet, attackers can try passwords repeatedly
+. Exploit services: If you run a web server or database, they can be exploited
+
+👉 Here's a scenario I'll simulate:
+
+## First, create a conducive environment for practice:
+🔹 Step 1: SSH into by key pair
+In local computer:
 
 ```bash
 chmod 400 KeytodemoMisconfig3.pem
 ssh -i KeytodemoMisconfig3.pem ec2-user@<Public-IP>
 ```
-👉 Nếu AMI là Ubuntu thì username mặc định là ubuntu.
+![image alt](https://github.com/ImSAM-S/Demo-EC2-Security-Group-Misconfiguration/blob/4801b6ebc7ebf514610f694ccb6ac0155b75969d/04_access_to_instance_BF.png)
 
-🔹 Bước 2: Bật password login
-Trong EC2:
+👉 If the AMI is Ubuntu, the default username is ubuntu. ec2-user is for Linux.
+
+🔹 Step 2: Turn on password login
+In EC2:
 
 ```bash
 sudo nano /etc/ssh/sshd_config
@@ -51,46 +59,50 @@ sudo nano /etc/ssh/sshd_config
 
 Đổi:
 
-Mã
+Code
 PasswordAuthentication no
 
-Thành:
+To:
 
-Mã
+Code
 PasswordAuthentication yes
-Lưu file.
 
-Restart dịch vụ SSH:
+![image alt](https://github.com/ImSAM-S/Demo-EC2-Security-Group-Misconfiguration/blob/4801b6ebc7ebf514610f694ccb6ac0155b75969d/05_No_to_yes.png)
+
+Save file.
+
+Restart SSH service:
 
 ```bash
 sudo systemctl restart sshd
 sudo systemctl enable sshd
 sudo systemctl status sshd
 ```
-→ cần thấy Active: active (running).
+→ Need to see Active: active (running).
 
-🔹 Bước 3: Tạo user test
+🔹 Step 3: Creat user test
 
 ```bash
 sudo adduser demo
 sudo passwd demo
 ```
+👉 Make weak password  (123456).
 
-👉 Đặt mật khẩu yếu (ví dụ 123456).
+![image alt](https://github.com/ImSAM-S/Demo-EC2-Security-Group-Misconfiguration/blob/4801b6ebc7ebf514610f694ccb6ac0155b75969d/06_Change_password.png)
 
-## Tình huống khi bạn bị tấn công bởi Hacker (use Hydra brute force)
-Vậy trong EC2 là PasswordAuthentication yes không phải PasswordAuthentication no thì với protocol all, port range all và Source 0.0.0.0/0 (Anywhere) thì attacker chỉ cần biết username và Public IP của EC2 thì chỉ với lệnh sau là vào được máy chủ của nạn nhân:
+## Situation when you are attacked by a hacker (using Hydra brute force)
+In EC2, if PasswordAuthentication is set to 'yes' and not 'no', with protocol 'all', port range 'all', and Source 0.0.0.0/0 (Anywhere), the attacker only needs to know the EC2 username and public IP address to gain access to the victim's server with the following command:
  
                                     `hydra -l demo -P passwords.txt -t 4 ssh://<Public-IP-EC2>`
 
-. Với passwords.txt là chứa mật khẩu để đoán mật khẩu của máy chủ nạn nhân.
+. The passwords.txt file contains the passwords used to guess the victim's server password.
 
 ## Khắc phục
-Rất đơn giản là bạn làm ngược lại mọi thứ tôi làm như trên
+Simply put, you do the opposite of everything I did above.
 
-Sửa lại `PasswordAuthentication no`
+Fix `PasswordAuthentication no`
 Restart `sshd`
-Xóa user test:
+Remove user test:
 ```bash
 sudo deluser demo
 ```
@@ -106,4 +118,18 @@ Best Practices:
 . Never expose port 22 to the whole Internet
 . Monitor logs and roll back insecure settings after testing
 
-## Project 
+## Project Files
+```tree
+EC2-SG-Misconfiguration/
+├── 01_Starting_launch_instance.png
+├── 02_Settings.png
+├── 03_Instance_done.png
+├── 04_access_to_instance_BF.png
+├── 05_No_to_yes.png
+├── 06_Change_password.png
+├── README.md
+└── passwords.txt
+```
+
+## Author
+ImSAM-S
