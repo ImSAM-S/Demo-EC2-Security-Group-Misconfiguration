@@ -91,7 +91,7 @@ sudo passwd demo
 
 🔹 Or simple like this:
 
-![image alt]()
+![image alt](https://github.com/ImSAM-S/Demo-EC2-Security-Group-Misconfiguration/blob/c0be3a43f464af24cc57023a2bdcf61b1c301ddb/06.5_anh_them%20(copy%201).png)
 
 🔹 step 4: check it
 ``` bash
@@ -100,13 +100,28 @@ ssh demo@<Your_IP_PUBLIC>
 👉 if it works, you will connect to user:'demo'.
 
 ## Situation when you are attacked by a hacker (using Hydra brute force)
+
+.) If you want to do like normanl, you need to scan first by nmap like:
+`nmap <IP-public> -p- -sV -sC`
+
 In EC2, if PasswordAuthentication is set to 'yes' and not 'no', with protocol 'all', port range 'all', and Source 0.0.0.0/0 (Anywhere), the attacker only needs to know the EC2 username and public IP address to gain access to the victim's server with the following command:
  
-                                    `hydra -l demo -P passwords.txt -t 4 ssh://<Public-IP-EC2>`
+`hydra -l demo -P passwords.txt -t 4 ssh://<Public-IP-EC2>`
 
-. The passwords.txt file contains the passwords used to guess the victim's server password.
+.) The passwords.txt file contains the passwords used to guess the victim's server password.
 
-## Khắc phục
+.) And this ís result:
+
+![image alt](https://github.com/ImSAM-S/Demo-EC2-Security-Group-Misconfiguration/blob/c0be3a43f464af24cc57023a2bdcf61b1c301ddb/07_result.png)
+
+## Check log (if you want)
+To view the SSH logs (root), open SSH and enter the following command:
+
+`sudo journalctl -t sshd -f`
+
+![image alt](https://github.com/ImSAM-S/Demo-EC2-Security-Group-Misconfiguration/blob/c0be3a43f464af24cc57023a2bdcf61b1c301ddb/08_check_log_in_ssh.png)
+
+## Fixing
 Simply put, you do the opposite of everything I did above.
 
 Fix `PasswordAuthentication no`
@@ -136,6 +151,9 @@ EC2-SG-Misconfiguration/
 ├── 04_access_to_instance_BF.png
 ├── 05_No_to_yes.png
 ├── 06_Change_password.png
+├── 06.5_anh_them (copy 1).png
+├── 07_result.png
+├── 08_check_log_in_ssh.png
 ├── README.md
 └── passwords.txt
 ```
