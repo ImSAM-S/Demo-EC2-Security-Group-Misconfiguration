@@ -89,6 +89,16 @@ sudo passwd demo
 
 ![image alt](https://github.com/ImSAM-S/Demo-EC2-Security-Group-Misconfiguration/blob/4801b6ebc7ebf514610f694ccb6ac0155b75969d/06_Change_password.png)
 
+🔹 Or simple like this:
+
+![image alt]()
+
+🔹 step 4: check it
+``` bash
+ssh demo@<Your_IP_PUBLIC>
+```
+👉 if it works, you will connect to user:'demo'.
+
 ## Situation when you are attacked by a hacker (using Hydra brute force)
 In EC2, if PasswordAuthentication is set to 'yes' and not 'no', with protocol 'all', port range 'all', and Source 0.0.0.0/0 (Anywhere), the attacker only needs to know the EC2 username and public IP address to gain access to the victim's server with the following command:
  
