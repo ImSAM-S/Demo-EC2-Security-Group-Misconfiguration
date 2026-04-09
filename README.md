@@ -74,11 +74,10 @@ Save file.
 Restart SSH service:
 
 ```bash
-sudo systemctl restart sshd
-sudo systemctl enable sshd
-sudo systemctl status sshd
+sudo systemctl restart sshd 
+sudo systemctl enable sshd // unnecessary because aws default is enable
+sudo systemctl status sshd // if you wanna see it status
 ```
-→ Need to see Active: active (running).
 
 🔹 Step 3: Creat user test
 
